@@ -1,14 +1,16 @@
 const express = require("express");
 const app = express();
 
-// connect to database
-require("./db");
+if (app.get("env") !== "test") {
+  require("./db");
+}
 
-// add body parser
 app.use(express.json());
 
-// define routes
 const kittens = require("./routes/kittens");
 app.use("/kittens", kittens);
+
+const owners = require("./routes/owners");
+app.use("/owners", owners);
 
 module.exports = app;
