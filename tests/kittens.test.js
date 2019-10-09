@@ -37,23 +37,20 @@ describe("kittens", () => {
   });
 
   describe("[GET] /kittens", () => {
-    it("gets all kittens", () => {
+    it("gets all kittens", async () => {
       const expectedKittens = [
         {name: "fluffy", age: 5, sex: "male"},
         {name: "muffin", age: 3, sex: "female"},
         {name: "waffle", age: 7, sex: "female"}
       ];
 
-      return request(app)
+      const {body: actualKittens} = await request(app)
         .get("/kittens")
-        .expect(200)
-        .expect(({body: actualKittens}) => {
-          expectedKittens.forEach((kitten, index) => {
-            expect(actualKittens[index]).toEqual(
-              expect.objectContaining(kitten)
-            );
-          });
-        });
+        .expect(200);
+
+      expectedKittens.forEach((kitten, index) => {
+        expect(actualKittens[index]).toEqual(expect.objectContaining(kitten));
+      });
     });
   });
 });
