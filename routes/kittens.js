@@ -37,4 +37,22 @@ router.post("/new", async (req, res, next) => {
   }
 });
 
+router.put("/:name", async (req, res) => {
+  const name = req.params.name;
+  const newKitten = req.body;
+  const kitten = await Kitten.findOneAndReplace({name}, newKitten, {
+    new: true
+  });
+  res.send(kitten);
+});
+
+router.patch("/:name", async (req, res) => {
+  const name = req.params.name;
+  const updatedKitten = req.body;
+  const kitten = await Kitten.findOneAndUpdate({name}, updatedKitten, {
+    new: true
+  });
+  res.send(kitten);
+});
+
 module.exports = router;

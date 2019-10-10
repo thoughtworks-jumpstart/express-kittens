@@ -16,7 +16,7 @@ router.get("/:firstName", async (req, res, next) => {
     const firstName = req.params.firstName;
     const regex = new RegExp(firstName, "gi");
     const owners = await Owner.find({firstName: regex});
-    res.send(person);
+    res.send(owners);
   } catch (err) {
     next(err);
   }
@@ -25,9 +25,30 @@ router.get("/:firstName", async (req, res, next) => {
 router.post("/new", async (req, res, next) => {
   try {
     const owner = new Owner(req.body);
-    const savedOwner = await owner.save();
-    res.send(savedOwner);
+    await Owner.init();
+    const newOwner = await owner.save();
+    res.send(newOwner);
   } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/login", async (req, res, next) => {
+  try {
+    const {username, password} = req.body;
+    const owner = await Owner.findOne({username});
+    const bcrypt = require("bcryptjs");
+    const result = await bcrypt.compare(password, owner.password);
+
+    if (!result) {
+      throw new Error("Login failed");
+    }
+
+    res.send(owner);
+  } catch (err) {
+    if (err.message === "Login failed") {
+      err.status = 400;
+    }
     next(err);
   }
 });

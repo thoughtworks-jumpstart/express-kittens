@@ -55,6 +55,17 @@ describe("kittens", () => {
         expect(actualKittens[index]).toEqual(expect.objectContaining(kitten));
       });
     });
+
+    it("gets a kitten by its name", async () => {
+      const expectedKitten = {name: "muffin", age: 3, sex: "female"};
+
+      const {body: actualKittens} = await request(app)
+        .get("/kittens/muff")
+        .expect(200);
+
+      expect(actualKittens.length).toBe(1);
+      expect(actualKittens[0]).toEqual(expect.objectContaining(expectedKitten));
+    });
   });
 
   describe("[POST] /kittens/new", () => {
@@ -71,18 +82,38 @@ describe("kittens", () => {
         .send({name: "Minty", age: 3, sex: "female"})
         .expect(200);
 
-      const {body: kittens} = await request(app)
+      const {body: actualKittens} = await request(app)
         .get("/kittens")
         .expect(200);
 
-      kittens.forEach((kitten, index) => {
+      actualKittens.forEach((kitten, index) => {
         expect(kitten).toEqual(expect.objectContaining(expectedKittens[index]));
       });
     });
   });
 
   describe("[PUT] /kittens/:name", () => {
-    it("updates a kitten", () => {});
+    it("replaces a kitten", async () => {
+      const {body: kitten} = await request(app)
+        .put("/kittens/muffin")
+        .send({name: "mutton"})
+        .expect(200);
+
+      expect(kitten).toEqual(expect.objectContaining({name: "mutton"}));
+    });
+  });
+
+  describe("[PATCH] /kittens/:name", () => {
+    it("updates a kitten", async () => {
+      const {body: kitten} = await request(app)
+        .patch("/kittens/muffin")
+        .send({name: "mutton"})
+        .expect(200);
+
+      expect(kitten).toEqual(
+        expect.objectContaining({name: "mutton", age: 3, sex: "female"})
+      );
+    });
   });
 
   describe("[DELETE] /kittens/:name", () => {
