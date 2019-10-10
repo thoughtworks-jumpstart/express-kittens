@@ -16,7 +16,6 @@ router.get("/:name", async (req, res, next) => {
     const name = req.params.name;
     const regex = new RegExp(name, "gi");
     const kittens = await Kitten.find({name: regex});
-    console.log(kittens[0].id, kittens[0]._id, kittens[0].name);
     res.send(kittens);
   } catch (err) {
     next(err);
