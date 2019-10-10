@@ -44,7 +44,7 @@ router.post("/login", async (req, res, next) => {
       throw new Error("Login failed");
     }
 
-    res.send(owner);
+    res.send("You're now logged in!");
   } catch (err) {
     if (err.message === "Login failed") {
       err.status = 400;

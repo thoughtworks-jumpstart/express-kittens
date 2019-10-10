@@ -37,7 +37,7 @@ describe("owners", () => {
     await Owner.deleteMany();
   });
 
-  describe("[POST] /owners/new", () => {
+  describe("[POST] /owners", () => {
     it("adds a new owner", async () => {
       const {body: owner} = await request(app)
         .post("/owners/new")
