@@ -1,10 +1,13 @@
 const mongoose = require("mongoose");
 
-const dbName = "kittens-db";
-
 let dbUrl;
-if ((process.env.NODE_ENV === "development")) {
+if (process.env.NODE_ENV === "development") {
+  const dbName = "kittens-db";
   dbUrl = `mongodb://localhost/${dbName}`;
+}
+
+if (process.env.NODE_ENV === 'production') {
+  dbUrl = process.env.MONGO_URI
 }
 
 mongoose.set("useNewUrlParser", true);
