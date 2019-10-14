@@ -3,13 +3,16 @@ const request = require("supertest");
 const mongoose = require("mongoose");
 const Owner = require("../models/Owner");
 const {MongoMemoryServer} = require("mongodb-memory-server");
+const jwt = require("jsonwebtoken");
+
+jest.mock("jsonwebtoken");
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
 
 mongoose.set("useNewUrlParser", true);
 mongoose.set("useFindAndModify", false);
 mongoose.set("useCreateIndex", true);
 mongoose.set("useUnifiedTopology", true);
-
-const contains = expect.objectContaining;
 
 describe("owners", () => {
   let mongoServer;
@@ -34,6 +37,7 @@ describe("owners", () => {
   });
 
   afterEach(async () => {
+    jest.resetAllMocks();
     await Owner.deleteMany();
   });
 
@@ -60,6 +64,40 @@ describe("owners", () => {
         .post("/owners/login")
         .send({username: "john", password: "wrongpassword"})
         .expect(400);
+    });
+  });
+
+  describe("[GET] /owners/:firstName - protected route", () => {
+    it("denies access when no token is provided", async () => {
+      await request(app)
+        .get("/owners/john")
+        .expect(401);
+
+      expect(jwt.verify).not.toHaveBeenCalled();
+    });
+
+    it("denies access when owner is not authorized", async () => {
+      jwt.verify.mockImplementationOnce(() => {
+        throw new Error();
+      });
+
+      await request(app)
+        .get("/owners/john")
+        .set("Cookie", "token=invalid-token")
+        .expect(401);
+
+      expect(jwt.verify).toHaveBeenCalledTimes(1);
+    });
+
+    it("grants access when owner is authorized", async () => {
+      jwt.verify.mockReturnValueOnce({});
+
+      await request(app)
+        .get("/owners/john")
+        .set("Cookie", "token=valid-token")
+        .expect(200);
+
+      expect(jwt.verify).toHaveBeenCalledTimes(1);
     });
   });
 });
