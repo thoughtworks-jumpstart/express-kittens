@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Kitten = require("../models/Kitten");
+const jwt = require("jsonwebtoken");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -53,6 +54,29 @@ router.patch("/:name", async (req, res) => {
     new: true
   });
   res.send(kitten);
+});
+
+const protectRoute = (req, res, next) => {
+  try {
+    if (!req.cookies.token) {
+      throw new Error("You are not authorized");
+    }
+    req.user = jwt.verify(req.cookies.token, process.env.JWT_SECRET_KEY);
+    next();
+  } catch (err) {
+    res.status(401).end();
+  }
+};
+
+router.delete("/:id", protectRoute, async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    await Kitten.findByIdAndDelete(id);
+    res.send();
+  } catch (err) {
+    err.status = 400;
+    next(err);
+  }
 });
 
 module.exports = router;

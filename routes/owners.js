@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
 const Owner = require("../models/Owner");
 
 router.get("/", async (req, res, next) => {
@@ -11,11 +12,23 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/:firstName", async (req, res, next) => {
+const protectedRoute = (req, res, next) => {
+  try {
+    if (!req.cookies.token) {
+      throw new Error("Go away!");
+    }
+    req.user = jwt.verify(req.cookies.token, process.env.JWT_SECRET_KEY);
+    next();
+  } catch (err) {
+    res.status(401).end("You are not authorized");
+  }
+};
+
+router.get("/:firstName", protectedRoute, async (req, res, next) => {
   try {
     const firstName = req.params.firstName;
     const regex = new RegExp(firstName, "gi");
-    const owners = await Owner.find({firstName: regex});
+    const owners = await Owner.find({username: regex});
     res.send(owners);
   } catch (err) {
     next(err);
@@ -33,6 +46,10 @@ router.post("/new", async (req, res, next) => {
   }
 });
 
+router.post("/logout", (req, res) => {
+  res.clearCookie("token").send("You are now logged out!");
+});
+
 router.post("/login", async (req, res, next) => {
   try {
     const {username, password} = req.body;
@@ -44,7 +61,19 @@ router.post("/login", async (req, res, next) => {
       throw new Error("Login failed");
     }
 
-    res.send("You're now logged in!");
+    const payload = {name: owner.username};
+    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+
+    const oneDay = 24 * 60 * 60 * 1000;
+    const oneWeek = oneDay * 7;
+    const expiryDate = new Date(Date.now() + oneWeek);
+
+    res.cookie("token", token, {
+      expires: expiryDate,
+      httpOnly: true
+    });
+
+    res.send("You are now logged in!");
   } catch (err) {
     if (err.message === "Login failed") {
       err.status = 400;

@@ -1,7 +1,11 @@
 const mongoose = require("mongoose");
 
 const dbName = "kittens-db";
-const dbUrl = `mongodb://localhost/${dbName}`;
+
+let dbUrl;
+if ((process.env.NODE_ENV = "development")) {
+  dbUrl = `mongodb://localhost/${dbName}`;
+}
 
 mongoose.set("useNewUrlParser", true);
 mongoose.set("useFindAndModify", false);
