@@ -36,7 +36,7 @@ describe("kittens", () => {
   });
 
   afterEach(async () => {
-    await Kitten.remove();
+    await Kitten.deleteMany();
   });
 
   describe("[GET] /kittens", () => {
